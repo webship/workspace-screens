@@ -6,6 +6,14 @@ import path from 'path';
 
 import { COMMANDS, NAME, SCREENRC, assistantContext, register } from '../src/index';
 
+// A ddev of the test's own on the PATH: what the menu offers depends on the CLI being there, and a
+// machine that runs these tests need not have it. One test takes it away again, on purpose.
+const BIN = fs.mkdtempSync(path.join(os.tmpdir(), 'screens-bin-'));
+fs.writeFileSync(path.join(BIN, 'ddev'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+const PATH_WITH_DDEV = `${BIN}${path.delimiter}${process.env.PATH || ''}`;
+const PATH_WITHOUT_DDEV = (process.env.PATH || '').split(path.delimiter).filter((d) => d && !fs.existsSync(path.join(d, 'ddev'))).join(path.delimiter);
+process.env.PATH = PATH_WITH_DDEV;
+
 /**
  * A dashboard as the plugin sees it: the api with what register() calls, a workspace on disk with
  * one folder (dev), one command and one DDEV project, and a `run` that plays screen (no session is
@@ -240,6 +248,22 @@ test('a shell in the container is the runtime\'s own command, guarded by "is the
   const noRuntime = await d.action('container-shell', { projectName: 'demo', runtime: 'lando' });
   assert.strictEqual(noRuntime.status, 409);
   assert.match(noRuntime.html, /No container runtime recognises this folder|come with their Webship Workspace plugins/);
+});
+
+test('a runtime whose CLI is not installed where the dashboard runs is named with how to install it, and nothing is started', async () => {
+  const d = dashboard();
+  process.env.PATH = PATH_WITHOUT_DDEV;
+  try {
+    const body = (await d.fragment('menu/dev/demo')).html;
+    assert.match(body, /DDEV · \.ddev\/config\.yaml/);
+    assert.match(body, /ddev is not installed where the dashboard runs: https:\/\/docs\.ddev\.com/);
+    assert.doesNotMatch(body, /shell-ddev|run-ddev/, 'no entry that could only fail');
+    assert.match(body, /shell-folder/, 'the folder shell needs no runtime');
+    const out = await d.action('container-shell', { projectName: 'demo', runtime: 'ddev' });
+    assert.strictEqual(out.status, 409);
+    assert.match(out.html, /ddev is not installed where the dashboard runs/);
+    assert.ok(!d.got.screenCalls.some((c: string[]) => c.includes('-dmS')));
+  } finally { process.env.PATH = PATH_WITH_DDEV; }
 });
 
 test('on a dashboard without the newer hooks the plugin still registers: its own page, no runner, no panel', () => {

@@ -44,7 +44,7 @@ const FLAG_RE = /^[A-Za-z0-9=_.,:@^~\/+-]+$/;
 export interface RunnerRequest { session?: string; workspace: string; project: string; projectDir: string; ownerDir?: string; verb: string; cmdLine: string; label: string }
 export interface RunnerAnswer { ok: boolean; session: string; already?: boolean; why?: string; where?: string; html?: string }
 
-/** The hooks a dashboard newer than 1.0.8 offers; absent on an older one, where the rest of the plugin works the same. */
+/** The hooks a dashboard newer than 1.0.9 offers; absent on an older one, where the rest of the plugin works the same. */
 interface NewerApi {
   addRunner?: (fn: (req: RunnerRequest) => Promise<RunnerAnswer | null> | RunnerAnswer | null) => void;
   addScreensPanel?: (fn: () => string) => void;

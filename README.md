@@ -35,9 +35,9 @@ are not on DDEV. None of them is required: what is missing is said, not guessed.
 
 | Where | What |
 | --- | --- |
-| Every page | The **Sessions** button: every session, running (attached or detached) and ended (with its exit code), what started it, its project, the last lines of its log, the command to attach, Stop, Remove. On a dashboard newer than 1.0.8 the list is a panel of the Screens page; on 1.0.8 it is a page of its own, `/screens/runs`. |
+| Every page | The **Sessions** button: every session, running (attached or detached) and ended (with its exit code), what started it, its project, the last lines of its log, the command to attach, Stop, Remove. On a dashboard that offers the Screens panel hook the list is a panel of the Screens page; on one that does not, it is a page of its own, `/screens/runs`. |
 | A workspace page | **Run in a screen**: any `cmd-*.sh` of the folder (builders and tools), a project name, arguments, and the choice "in a screen session" or "in the page". |
-| The Build form, the row menus | On a dashboard newer than 1.0.8 their runs are handed to the plugin and start in a screen session (or in the page, when `runs.default_mode` says so). On 1.0.8 they run as the base runs them. |
+| The Build form, the row menus | On a dashboard that offers the runner hook their runs are handed to the plugin and start in a screen session (or in the page, when `runs.default_mode` says so). On one that does not, they run as the base runs them. |
 | A project row | The **SHELL** menu: a shell in the project folder, a shell in the container, "Run a command in the container…", "Run in a screen…", and the project's live sessions with their attach command. The menu's body loads when it opens. |
 | A session's log | Paged, 200 lines a page, opening on the last one; the last page of a running session follows it. Colour codes and progress-bar rewrites are taken out. |
 | Your terminal | `cmd-tools-screens.sh` in every sites and code folder: start, list, attach, log, follow, stop, clean. The same sessions the dashboard lists. |
@@ -215,5 +215,7 @@ npm test        # unit tests; the session tests start real sessions in a sockets
 ```
 
 The plugin reaches the dashboard only through `api` and requires nothing from the dashboard's own
-files. It registers on a dashboard without the newer hooks (`api.addRunner`, `api.addScreensPanel`)
-and uses them when they are there.
+files. Two hooks are newer than Webship Workspace 1.0.9: `api.addRunner` (the Build form and the
+row menus hand their runs over) and `api.addScreensPanel` (the list on the Screens page). The
+plugin registers on a dashboard without them, where everything else works the same, and uses them
+when `api.capabilities` names them (`runner`, `screens-panel`).

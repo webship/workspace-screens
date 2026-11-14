@@ -56,7 +56,38 @@
     ],
     "features": [
       "features/screens.feature"
-    ]
+    ],
+    "needs": {
+      "commands": [
+        {
+          "command": "container:screen",
+          "hint": "It is in the dashboard image; without the dashboard container: sudo apt install -y screen"
+        }
+      ]
+    },
+    "suggests": {
+      "plugins": [
+        [
+          "dev",
+          "test",
+          "sandboxes",
+          "demos",
+          "projects",
+          "products"
+        ],
+        "docker",
+        "lando",
+        "docksal",
+        "podman",
+        "kubernetes"
+      ],
+      "commands": [
+        {
+          "command": "screen",
+          "hint": "To attach from the machine itself: sudo apt install -y screen"
+        }
+      ]
+    }
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

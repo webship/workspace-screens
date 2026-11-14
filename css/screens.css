@@ -1,0 +1,30 @@
+/* The Screens plugin: the sessions list, the log, the SHELL menu.
+   Appended to the dashboard stylesheet after the components, so it may only ADD rules. */
+.sessions-manager .sessions-toolbar { display: flex; gap: .5rem; flex-wrap: wrap; margin: .5rem 0 .75rem; }
+.sessions-count { margin-bottom: .5rem; }
+.sessions-list { margin: 0; padding: 0; }
+.sessions-row { border: 1px solid var(--line); border-left: 3px solid var(--line-strong); border-radius: 6px; padding: .6rem .75rem; margin: 0 0 .6rem; background: var(--surface); }
+.sessions-row.is-attached, .sessions-row.is-detached { border-left-color: var(--brand-primary); }
+.sessions-row.is-ended-failed { border-left-color: var(--danger); }
+.sessions-row-head { display: flex; flex-wrap: wrap; gap: .5rem; align-items: baseline; }
+.sessions-name { font-family: var(--font-code); font-weight: 600; overflow-wrap: anywhere; }
+.sessions-project { font-size: .8rem; color: var(--text-subtle); }
+.sessions-state { display: inline-block; font-size: .72rem; line-height: 1.5; padding: 0 .45rem; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--text-default); white-space: nowrap; }
+.sessions-state.is-attached, .sessions-state.is-detached { border-color: var(--brand-primary); color: var(--brand-primary); }
+.sessions-state.is-ended-failed { border-color: var(--danger); color: var(--danger); }
+.sessions-command { margin: .35rem 0; }
+.sessions-command code, .sessions-copy code { font-family: var(--font-code); font-size: .8rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.sessions-row-actions { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; margin: .35rem 0; }
+.sessions-attach { margin: .35rem 0; }
+.sessions-copy { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: .15rem 0; }
+.sessions-copy code { flex: 1 1 14rem; }
+.sessions-tail { max-height: 12.5em; overflow: auto; margin: .4rem 0 0; font-size: .75rem; }
+.sessions-log-pre { max-height: 60vh; overflow: auto; font-size: .78rem; }
+.sessions-pager { display: flex; gap: .4rem; flex-wrap: wrap; margin: .5rem 0; }
+.sessions-panel { margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+.sessions-menu .sessions-menu-note, .sessions-menu .sessions-menu-session { padding: .25rem 0; white-space: normal; max-width: 26rem; }
+.sessions-menu .sessions-menu-session code { font-family: var(--font-code); font-size: .75rem; overflow-wrap: anywhere; }
+.sessions-page { padding-top: 1.5rem; }
+@media (max-width: 640px) {
+  .sessions-copy code { flex-basis: 100%; }
+}

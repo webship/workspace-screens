@@ -1,0 +1,23 @@
+name: ci
+on:
+  push:
+    branches: ['1.0.x']
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: git config --global url."https://x-access-token:${{ secrets.WORKSPACE_PLUGINS_TOKEN || github.token }}@github.com/".insteadOf "https://github.com/"
+      # The session tests start real sessions in a sockets directory of their own.
+      - run: sudo apt-get install -y -qq screen
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - name: every shell script parses
+        run: for f in commands/*.sh scripts/*.sh scripts/functions/*.sh scripts/args/*.sh; do bash -n "$f"; done
+      - name: the host check runs and installs nothing
+        run: bash scripts/host-install.sh --check

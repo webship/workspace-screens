@@ -1,0 +1,47 @@
+# Screens and terminals — core/config/plugin.screens.settings.yml
+#
+# Every part of the plugin is a switch. A group has a master switch (`enabled`) and one switch per
+# element; an element shows only when both are on. With a switch off the element is not drawn at
+# all, its address answers "not enabled", and a run goes back to the runner of the page.
+# The dashboard reads this file on every request: a change needs no restart.
+
+screens:
+  # The master switch of everything about screen sessions below.
+  enabled: true
+  # The sessions page (/screens/runs), its panel on the Screens page and the button that opens it.
+  page: true
+  # "Run in a screen": the form, the row menu entry, and the runs the Build form and the row
+  # menus hand over. Off: those runs stay with the runner of the page.
+  run_in_screen: true
+  # The command to attach from a terminal of your own, beside every session.
+  attach_hints: true
+
+shells:
+  # The master switch of the shell entries below.
+  enabled: true
+  # A shell in the project folder, as a session.
+  project: true
+  # A shell, or one command, inside the project's container (DDEV, and the runtimes of the
+  # container plugins that are turned on).
+  container: true
+
+runs:
+  # How a run starts when nobody chose: screen (a detached session that outlives the dashboard) or
+  # page (the dashboard's own runner: it ends when the dashboard restarts).
+  default_mode: screen
+  # Where the logs and the notes of the sessions live: a folder in the workspace, or an absolute path.
+  log_dir: .screens
+  # Days the log of an ended session is kept. 0 keeps it until you remove it.
+  retention_days: 14
+  # The sockets of the sessions. auto: screen's own directory (the one the machine and the
+  # dashboard's container share) when this user can use it, else <log_dir>/sockets. Or a path.
+  sockets_dir: auto
+
+terminal:
+  # The command that opens a terminal on your machine, for the "open in my terminal" hint, with
+  # {attach} where the attach command goes. Examples:
+  #   gnome-terminal -- {attach}
+  #   konsole -e {attach}
+  #   osascript -e 'tell app "Terminal" to do script "{attach}"'
+  # Empty: only the attach command itself is shown.
+  command: ""

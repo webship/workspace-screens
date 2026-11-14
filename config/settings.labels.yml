@@ -1,0 +1,45 @@
+# Labels for core/config/plugin.screens.settings.yml, merged into the Settings page.
+screens.enabled:
+  label: Screen sessions
+  info: The master switch of the sessions page, "Run in a screen" and the attach commands. Off hides all three, whatever their own switches say.
+screens.page:
+  label: Sessions page and its button
+  info: The page that lists every session (running, attached or detached, ended) with its log, its panel on the Screens page, and the button that opens it.
+screens.run_in_screen:
+  label: Run in a screen
+  info: The "Run in a screen" form and row menu entry, and the runs the Build form and the row menus hand over. Off, those runs stay with the runner of the page.
+screens.attach_hints:
+  label: Attach commands
+  info: 'The command to attach from a terminal of your own (screen -r <session>), beside every session.'
+shells.enabled:
+  label: Shells
+  info: The master switch of the shell entries. Off hides both, for a team that does not want shells opened from the dashboard.
+shells.project:
+  label: Shell in the project folder
+  info: A shell in a project's folder, started as a session.
+shells.container:
+  label: Shell in the container
+  info: A shell, or one command, inside the project's container. DDEV is built in; Docker Compose, Lando, Docksal, Podman and Kubernetes need their plugin turned on.
+runs.default_mode:
+  label: How a run starts
+  info: In a screen, a run outlives a dashboard restart and a closed tab. In the page, it is the dashboard's own runner and ends with it.
+  options:
+    screen: In a screen session
+    page: In the page
+runs.log_dir:
+  label: Log folder
+  info: Where the logs and the notes of the sessions live. A folder in the workspace, or an absolute path.
+runs.retention_days:
+  label: Keep ended sessions
+  info: Days the log of an ended session is kept before a clean removes it. 0 keeps it until you remove it.
+  number:
+    min: 0
+    max: 365
+    step: 1
+    unit: days
+runs.sockets_dir:
+  label: Sockets directory
+  info: 'auto uses the directory screen shares between the machine and the dashboard, and a folder inside the log folder when screen refuses that one. Or name a directory: it must be yours alone (mode 700).'
+terminal.command:
+  label: Terminal command
+  info: 'The command that opens a terminal on your machine, with {attach} where the attach command goes (gnome-terminal -- {attach}). Shown as the "open in my terminal" hint; empty shows the attach command only.'

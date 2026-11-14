@@ -1,0 +1,24 @@
+# The screen configuration of the sessions the Screens plugin starts (`screen -c <this file>`),
+# from the dashboard and from cmd-tools-screens.sh alike. It is the plugin's own file, so what your
+# own `screen` does with ~/.screenrc stays as you set it.
+
+# A full-screen program draws on a screen of its own and gives the scrollback back when it leaves.
+altscreen on
+
+# The mouse stays with the terminal: the wheel scrolls it and does not type into the session.
+mousetrack off
+
+# A build prints more than a hundred lines: keep ten thousand to scroll back through.
+defscrollback 10000
+
+# The first thing a terminal shows on attach is the session, not a notice.
+startup_message off
+
+# Ctrl-S and Ctrl-Q are keystrokes. As flow control, Ctrl-S freezes the window and looks like a hang.
+defflow off
+
+# UTF-8 in every window.
+defutf8 on
+
+# A shell's log (screen -L) reaches the file within a second, so the dashboard's log tail is current.
+logfile flush 1

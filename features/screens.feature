@@ -22,8 +22,7 @@ Feature: The Screens plugin: sessions, runs in a screen, shells
      Then I should see "Run in a screen"
      When I go to "/fragments/p/screens/run-form?workspace=dev"
      Then I should see "Run in a screen · dev"
-      And I should see "In a screen session"
-      And I should see "In the page"
+      And I should not see "In the page"
 
   Scenario: A project row offers the SHELL menu
     Given I am on "/dev"

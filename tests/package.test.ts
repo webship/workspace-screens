@@ -31,7 +31,7 @@ test('every setting of the template has a label, and every switch is in the temp
   const template = read(manifest.settingsTemplate);
   const labels = read(manifest.labels);
   const keys = ['screens.enabled', 'screens.page', 'screens.run_in_screen', 'screens.attach_hints', 'shells.enabled', 'shells.project', 'shells.container',
-    'runs.default_mode', 'runs.log_dir', 'runs.retention_days', 'runs.sockets_dir', 'terminal.command'];
+    'runs.log_dir', 'runs.retention_days', 'runs.sockets_dir', 'terminal.command'];
   for (const key of keys) {
     const [group, name] = key.split('.');
     assert.match(labels, new RegExp(`^${group}\\.${name}:\\n  label: .+\\n  info: .+`, 'm'), `${key} has a label and an explanation`);

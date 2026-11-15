@@ -103,30 +103,15 @@ export function register(api: PluginApi): void {
     return ctx.send(views.startedHtml(esc, { session: started.session, label, project, hints: await hintsOf({ session: started.session, attached: false }), page: settings().switches.page }).replace('/screens/runs', pageUrl));
   }
 
-  // A short command of the dashboard ends by waiting for Enter, so its session can be read before it
-  // closes. A run in the page has no terminal to press Enter in: the wait is taken off the line.
-  const lingerWait = (() => {
-    try { const tail = String(lib.lingerTail('')); const at = tail.indexOf('timeout --foreground'); return at >= 0 ? tail.slice(at) : ''; } catch (_) { return ''; }
-  })();
-  const forPage = (cmdLine: string): string => (lingerWait ? cmdLine.split(lingerWait).join('true') : cmdLine);
-
-  /** A run in the page: the dashboard's own runner, a live toast that ends with the dashboard. */
-  const runInPage = (title: string, cmdLine: string, cwd: string): string => {
-    const id = lib.startJob(title, 'bash', ['-lc', forPage(cmdLine)], cwd, { timeoutMs: 3 * 60 * 60 * 1000, echoLine: cmdLine });
-    return lib.jobFragment(id).html;
-  };
-
   // ------------------------------------------------------------ the runner --
   // The Build form and the row menus hand their runs to this when the dashboard has the hook. With
-  // "run in a screen" off the plugin steps aside (null) and the run stays with the dashboard.
+  // "run in a screen" off the plugin steps aside (null) and the run stays with the dashboard, which
+  // starts it in a screen session of its own. A run is never drawn as a terminal in the page.
   if (typeof newer.addRunner === 'function') {
     newer.addRunner(async (req) => {
       const s = settings();
       if (!s.switches.runInScreen) return null;
       const session = validSession(req.session) ? String(req.session) : sessionName(req.workspace, req.project, req.verb);
-      if (s.defaultMode === 'page') {
-        return { ok: true, session, where: 'page', html: runInPage(`${esc(req.label)} on <strong>${esc(req.project)}</strong>`, req.cmdLine, req.projectDir) };
-      }
       const started = await sessions.start({ session, command: req.cmdLine, dir: req.projectDir,
         note: { dir: req.ownerDir || req.projectDir, project: req.project, workspace: req.workspace, by: 'dashboard', kind: 'run', runtime: '' } });
       if (!started.ok) return { ok: false, session, already: started.already, why: started.why, where: 'screen' };
@@ -256,7 +241,7 @@ export function register(api: PluginApi): void {
       });
       const project = String(searchParams.get('project') || '');
       const health = await sessions.health();
-      return send(views.runFormHtml(esc, { workspace, scripts, project: lib.NAME_RE.test(project) ? project : '', mode: s.defaultMode, canScreen: health.installed }));
+      return send(views.runFormHtml(esc, { workspace, scripts, project: lib.NAME_RE.test(project) ? project : '', canScreen: health.installed }));
     }
 
     if ((m = rest.match(/^menu\/([a-z0-9_-]+)\/([A-Za-z0-9._-]+)$/))) {
@@ -292,9 +277,6 @@ export function register(api: PluginApi): void {
     if (bad) return ctx.send(views.errorHtml(esc, `An argument may hold letters, digits and = _ . , : @ ^ ~ / + - only: ${bad}`), 400);
     const cmdLine = `bash ${[script, ...(project ? [project] : []), ...flags].map((a) => JSON.stringify(a)).join(' ')}`;
     const label = `${script.replace(/^cmd-|\.sh$/g, '')}${project ? ` ${project}` : ''}`;
-    if (String(form.mode || s.defaultMode) === 'page') {
-      return ctx.send(runInPage(`${esc(label)} in <strong>${esc(workspace)}</strong>`, cmdLine, dir));
-    }
     const live = new Set((await sessions.live()).map((r) => r.session));
     const session = freeName(sessionName(workspace, project, verbOfScript(script)), (n) => live.has(n));
     return startAndAnswer(ctx, { session, command: cmdLine, dir,

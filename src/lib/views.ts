@@ -117,7 +117,7 @@ export function logHtml(esc: Esc, r: SessionRow | null, session: string, page: L
 
 export interface FormScript { file: string; label: string; builder: boolean }
 
-export function runFormHtml(esc: Esc, opts: { workspace: string; scripts: FormScript[]; project: string; mode: 'screen' | 'page'; canScreen: boolean }): string {
+export function runFormHtml(esc: Esc, opts: { workspace: string; scripts: FormScript[]; project: string; canScreen: boolean }): string {
   const option = (s: FormScript) => `<option value="${esc(s.file)}">${esc(s.label)}</option>`;
   const builders = opts.scripts.filter((s) => s.builder);
   const tools = opts.scripts.filter((s) => !s.builder);
@@ -135,11 +135,8 @@ export function runFormHtml(esc: Esc, opts: { workspace: string; scripts: FormSc
         <input class="uk-input" id="sessions-project" name="projectName" value="${esc(opts.project)}" placeholder="the project name the command takes (empty for a tool that takes none)" pattern="[A-Za-z0-9][A-Za-z0-9_.-]*"></div>
       <div class="uk-margin-small"><label class="uk-form-label" for="sessions-flags">Arguments</label>
         <input class="uk-input" id="sessions-flags" name="flags" placeholder="--install --add-users"></div>
-      <div class="uk-margin-small">
-        <label class="uk-margin-small-right"><input class="uk-radio" type="radio" name="mode" value="screen"${opts.mode === 'screen' && opts.canScreen ? ' checked' : ''}${opts.canScreen ? '' : ' disabled'}> In a screen session</label>
-        <label><input class="uk-radio" type="radio" name="mode" value="page"${opts.mode === 'page' || !opts.canScreen ? ' checked' : ''}> In the page</label>
-      </div>
-      <button class="uk-button uk-button-primary" type="submit"><span uk-icon="icon: play; ratio: .8"></span> Run</button>
+      ${opts.canScreen ? '' : `<p class="msg error">screen is not installed where the dashboard runs, so nothing can be started from here. <code>bash core/scripts/plugins/screens/host-install.sh --check</code> says what to do.</p>`}
+      <button class="uk-button uk-button-primary" type="submit"${opts.canScreen ? '' : ' disabled'}><span uk-icon="icon: play; ratio: .8"></span> Run</button>
     </form></div>`;
 }
 
@@ -205,10 +202,15 @@ export function containerFormHtml(esc: Esc, workspace: string, project: string, 
     </form></div>`;
 }
 
-/** What a start answers with: the session, where to watch it, how to attach. A result, not a page: it flashes and goes. */
+/**
+ * What a start answers with: what started, on what, and the link to its session. A short notice,
+ * not output: it flashes and goes. The link goes to the Screens page on that session
+ * (`?session=<name>`), which a dashboard that does not know the address ignores.
+ */
 export function startedHtml(esc: Esc, opts: { session: string; label: string; project: string; hints: AttachHints | null; page: boolean }): string {
-  return `<div class="msg assistant flash-now" data-reload-on-close="1"><code>${esc(opts.label)}</code>${opts.project ? ` on <strong>${esc(opts.project)}</strong>` : ''} runs in the session <code>${esc(opts.session)}</code>${opts.page ? ' — <a href="/screens/runs">watch it on Sessions</a>' : ''}.
-    ${opts.hints ? `<br><span class="uk-text-meta">Attach from your terminal:</span> <code>${esc(opts.hints.attach)}</code>` : ''}</div>`;
+  const link = opts.page ? ` — <a href="/screens/runs?session=${encodeURIComponent(opts.session)}">Open in Screens</a>` : '';
+  return `<div class="msg assistant flash-now" data-reload-on-close="1"><span class="notice-text"><code>${esc(opts.label)}</code> started${opts.project ? ` on <strong>${esc(opts.project)}</strong>` : ''}, session <code>${esc(opts.session)}</code>${link}
+    ${opts.hints ? `<br><span class="uk-text-meta">Attach from your terminal:</span> <code>${esc(opts.hints.attach)}</code>` : ''}</span></div>`;
 }
 
 export const errorHtml = (esc: Esc, text: string): string => `<div class="msg error flash-now">${esc(text)}</div>`;

@@ -4,7 +4,7 @@
  * Everything the plugin shows is a switch. A group has one master switch ("screens", "shells") and
  * one switch per element; an element is on only when its own switch and its group's are. With a
  * switch off the element is not drawn, its route answers "not enabled", and a run goes back to the
- * runner of the page.
+ * dashboard, which starts it in a screen session of its own.
  */
 
 export interface Switches {
@@ -22,8 +22,6 @@ export interface Switches {
 
 export interface Settings {
   switches: Switches;
-  /** 'screen' or 'page': how a run starts when nobody chose. */
-  defaultMode: 'screen' | 'page';
   /** Where the logs and the notes of the sessions live: absolute, or relative to the workspace root. */
   logDir: string;
   /** Days an ended session's log is kept; 0 keeps it until it is removed by hand. */
@@ -36,7 +34,6 @@ export interface Settings {
 
 export const DEFAULTS: Settings = {
   switches: { page: true, runInScreen: true, attachHints: true, shellProject: true, shellContainer: true },
-  defaultMode: 'screen',
   logDir: '.screens',
   retentionDays: 14,
   socketsDir: 'auto',
@@ -67,7 +64,6 @@ export function readSettings(raw: unknown): Settings {
   const screensOn = flag(screens.enabled, true);
   const shellsOn = flag(shells.enabled, true);
   const days = Number(runs.retention_days);
-  const mode = String(runs.default_mode ?? '').trim().toLowerCase();
   return {
     switches: {
       page: screensOn && flag(screens.page, d.switches.page),
@@ -76,7 +72,6 @@ export function readSettings(raw: unknown): Settings {
       shellProject: shellsOn && flag(shells.project, d.switches.shellProject),
       shellContainer: shellsOn && flag(shells.container, d.switches.shellContainer),
     },
-    defaultMode: mode === 'page' ? 'page' : 'screen',
     logDir: String(runs.log_dir ?? '').trim() || d.logDir,
     retentionDays: Number.isFinite(days) && days >= 0 ? Math.floor(days) : d.retentionDays,
     socketsDir: String(runs.sockets_dir ?? '').trim() || d.socketsDir,

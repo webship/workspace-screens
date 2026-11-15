@@ -7,7 +7,7 @@ screens.page:
   info: The page that lists every session (running, attached or detached, ended) with its log, its panel on the Screens page, and the button that opens it.
 screens.run_in_screen:
   label: Run in a screen
-  info: The "Run in a screen" form and row menu entry, and the runs the Build form and the row menus hand over. Off, those runs stay with the runner of the page.
+  info: The "Run in a screen" form and row menu entry, and the runs the Build form and the row menus hand over. Off, those runs stay with the dashboard, which starts them in a screen session of its own.
 screens.attach_hints:
   label: Attach commands
   info: 'The command to attach from a terminal of your own (screen -r <session>), beside every session.'
@@ -20,12 +20,6 @@ shells.project:
 shells.container:
   label: Shell in the container
   info: A shell, or one command, inside the project's container. DDEV is built in; Docker Compose, Lando, Docksal, Podman and Kubernetes need their plugin turned on.
-runs.default_mode:
-  label: How a run starts
-  info: In a screen, a run outlives a dashboard restart and a closed tab. In the page, it is the dashboard's own runner and ends with it.
-  options:
-    screen: In a screen session
-    page: In the page
 runs.log_dir:
   label: Log folder
   info: Where the logs and the notes of the sessions live. A folder in the workspace, or an absolute path.

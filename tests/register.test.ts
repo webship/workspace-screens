@@ -197,20 +197,17 @@ test('the settings are read on every request: a switch turned off takes effect w
   assert.strictEqual(d.rail()[0].items.length, 2);
 });
 
-test('runs.default_mode page: the runner and the form hand the run to the page\'s own runner', async () => {
+test('a run is never handed to the page: runs.default_mode page of an older settings file still starts a session', async () => {
   const d = dashboard({ runs: { default_mode: 'page' } });
   const out = await d.got.runners[0](runnerReq(d.root));
-  assert.deepStrictEqual([out.ok, out.where], [true, 'page']);
-  assert.match(out.html, /job-toast/);
-  assert.deepStrictEqual(d.got.jobs[0].args, ['-lc', 'bash "cmd-wordpress-project.sh" "demo"']);
-  // A line that ends by waiting for Enter does not wait in the page, where nobody can press it.
-  const lingering = await d.got.runners[0]({ ...runnerReq(d.root), cmdLine: `ddev describe; ${d.got.api.lib.lingerTail('describe')}` });
-  assert.strictEqual(lingering.ok, true);
-  assert.deepStrictEqual(d.got.jobs[1].args, ['-lc', 'ddev describe; echo "describe finished."; true']);
-  d.got.jobs.pop();
+  assert.deepStrictEqual([out.ok, out.where], [true, 'screen']);
+  assert.doesNotMatch(out.html, /job-toast|terminal-pre/);
+  assert.match(out.html, /Open in Screens/);
   const form = await d.action('run', { script: 'cmd-tools-backup-dev.sh', projectName: 'demo', mode: 'page' });
-  assert.match(form.html, /job-toast/);
-  assert.strictEqual(d.got.jobs.length, 2);
+  assert.doesNotMatch(form.html, /job-toast|terminal-pre/);
+  assert.strictEqual(d.got.jobs.length, 0, 'no job of the dashboard was started');
+  const src = fs.readFileSync(path.join(__dirname, '..', '..', 'src', 'index.ts'), 'utf8');
+  assert.doesNotMatch(src, /startJob|jobFragment/, 'the plugin does not use the runner of the page');
 });
 
 test('the run form lists the builders and the tools of the folder, and refuses what is not a command of it', async () => {
@@ -274,10 +271,11 @@ test('on a dashboard without the newer hooks the plugin still registers: its own
   assert.match(d.page().body, /id="sessions-manager"/);
 });
 
-test('without screen where the dashboard runs, the list says so and the form offers the page only', async () => {
+test('without screen where the dashboard runs, the list and the form say so, and nothing is offered in the page', async () => {
   const d = dashboard({}, { screen: false });
   assert.match((await d.fragment('runs/list')).html, /screen is not installed where the dashboard runs/);
   const form = (await d.fragment('run-form', 'workspace=dev')).html;
-  assert.match(form, /value="screen" disabled/);
-  assert.match(form, /value="page" checked/);
+  assert.match(form, /screen is not installed where the dashboard runs, so nothing can be started from here/);
+  assert.match(form, /<button class="uk-button uk-button-primary" type="submit" disabled>/);
+  assert.doesNotMatch(form, /name="mode"|In the page/);
 });

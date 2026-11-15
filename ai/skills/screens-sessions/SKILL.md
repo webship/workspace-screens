@@ -19,7 +19,7 @@ from its log.
 | Where | Entry | What it does |
 | --- | --- | --- |
 | Every page | **Sessions** | The list: running (attached or detached) and ended (with the exit code), the last lines of each log, the command to attach, Stop, Remove |
-| A workspace page | **Run in a screen** | Any `cmd-*.sh` of the folder, a project, arguments, and "in a screen session" or "in the page" |
+| A workspace page | **Run in a screen** | Any `cmd-*.sh` of the folder, a project and arguments; always a screen session |
 | A project row, the SHELL menu | **Shell in the project folder** | A shell in the folder, as a session |
 | | **Shell in the container** | A shell inside the project's container |
 | | **Run a command in the container…** | One command inside it, as a session with a log |
@@ -95,8 +95,7 @@ element; an element shows only when both are on.
 | `shells:` | `enabled:` | `true` | The master switch of the two below |
 | | `project:` | `true` | A shell in the project folder |
 | | `container:` | `true` | A shell, or one command, inside the project's container |
-| `runs:` | `default_mode:` | `screen` | `screen` or `page`: how a run starts when nobody chose |
-| | `log_dir:` | `.screens` | The log folder: in the workspace, or an absolute path |
+| `runs:` | `log_dir:` | `.screens` | The log folder: in the workspace, or an absolute path |
 | | `retention_days:` | `14` | Days an ended session is kept; `0` keeps it until it is removed |
 | | `sockets_dir:` | `auto` | Where screen keeps the sockets of the sessions |
 | `terminal:` | `command:` | empty | The command that opens a terminal on the machine, with `{attach}` where the attach command goes |

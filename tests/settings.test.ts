@@ -7,7 +7,6 @@ test('with no settings file every switch is on, runs start in a screen, logs liv
   const s = readSettings(undefined);
   assert.deepStrictEqual(s, DEFAULTS);
   assert.deepStrictEqual(s.switches, { page: true, runInScreen: true, attachHints: true, shellProject: true, shellContainer: true });
-  assert.strictEqual(s.defaultMode, 'screen');
   assert.strictEqual(s.logDir, '.screens');
   assert.strictEqual(s.retentionDays, 14);
   assert.strictEqual(s.socketsDir, 'auto');
@@ -43,14 +42,13 @@ test('a switch reads YAML booleans and the words people type; anything else is t
   for (const v of [undefined, null, '', 'maybe', {}]) { assert.strictEqual(flag(v, true), true); assert.strictEqual(flag(v, false), false); }
 });
 
-test('the run settings: mode, log folder, retention, sockets, terminal command', () => {
+test('the run settings: log folder, retention, sockets, terminal command; a run has no mode but a screen', () => {
   const s = readSettings({ runs: { default_mode: 'page', log_dir: '/var/tmp/logs', retention_days: 0, sockets_dir: '~/.sessions' }, terminal: { command: 'gnome-terminal -- {attach}' } });
-  assert.strictEqual(s.defaultMode, 'page');
+  assert.ok(!('defaultMode' in s), 'default_mode: page of an older settings file is not read: a run is a screen session');
   assert.strictEqual(s.logDir, '/var/tmp/logs');
   assert.strictEqual(s.retentionDays, 0, '0 keeps the logs');
   assert.strictEqual(s.socketsDir, '~/.sessions');
   assert.strictEqual(s.terminalCommand, 'gnome-terminal -- {attach}');
-  assert.strictEqual(readSettings({ runs: { default_mode: 'tmux', retention_days: -3 } }).defaultMode, 'screen', 'an unknown mode is the default');
   assert.strictEqual(readSettings({ runs: { retention_days: -3 } }).retentionDays, 14);
 });
 

@@ -2,7 +2,8 @@
 #
 # Every part of the plugin is a switch. A group has a master switch (`enabled`) and one switch per
 # element; an element shows only when both are on. With a switch off the element is not drawn at
-# all, its address answers "not enabled", and a run goes back to the runner of the page.
+# all, its address answers "not enabled", and a run goes back to the dashboard, which starts it in a
+# screen session of its own. A run is never drawn as a terminal in the page.
 # The dashboard reads this file on every request: a change needs no restart.
 
 screens:
@@ -11,7 +12,7 @@ screens:
   # The sessions page (/screens/runs), its panel on the Screens page and the button that opens it.
   page: true
   # "Run in a screen": the form, the row menu entry, and the runs the Build form and the row
-  # menus hand over. Off: those runs stay with the runner of the page.
+  # menus hand over. Off: those runs stay with the dashboard's own screen sessions.
   run_in_screen: true
   # The command to attach from a terminal of your own, beside every session.
   attach_hints: true
@@ -26,9 +27,6 @@ shells:
   container: true
 
 runs:
-  # How a run starts when nobody chose: screen (a detached session that outlives the dashboard) or
-  # page (the dashboard's own runner: it ends when the dashboard restarts).
-  default_mode: screen
   # Where the logs and the notes of the sessions live: a folder in the workspace, or an absolute path.
   log_dir: .screens
   # Days the log of an ended session is kept. 0 keeps it until you remove it.

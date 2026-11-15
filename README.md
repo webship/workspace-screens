@@ -36,8 +36,8 @@ are not on DDEV. None of them is required: what is missing is said, not guessed.
 | Where | What |
 | --- | --- |
 | Every page | The **Sessions** button: every session, running (attached or detached) and ended (with its exit code), what started it, its project, the last lines of its log, the command to attach, Stop, Remove. On a dashboard that offers the Screens panel hook the list is a panel of the Screens page; on one that does not, it is a page of its own, `/screens/runs`. |
-| A workspace page | **Run in a screen**: any `cmd-*.sh` of the folder (builders and tools), a project name, arguments, and the choice "in a screen session" or "in the page". |
-| The Build form, the row menus | On a dashboard that offers the runner hook their runs are handed to the plugin and start in a screen session (or in the page, when `runs.default_mode` says so). On one that does not, they run as the base runs them. |
+| A workspace page | **Run in a screen**: any `cmd-*.sh` of the folder (builders and tools), a project name and arguments. A run is always a screen session: nothing is drawn as a terminal in the page. |
+| The Build form, the row menus | On a dashboard that offers the runner hook their runs are handed to the plugin and start in a screen session; the page shows a short notice with **Open in Screens**. With `screens.run_in_screen` off, or on a dashboard without the hook, they run as the base runs them (a dashboard newer than 1.0.12 starts them in a screen session of its own). |
 | A project row | The **SHELL** menu: a shell in the project folder, a shell in the container, "Run a command in the container…", "Run in a screen…", and the project's live sessions with their attach command. The menu's body loads when it opens. |
 | A session's log | Paged, 200 lines a page, opening on the last one; the last page of a running session follows it. Colour codes and progress-bar rewrites are taken out. |
 | Your terminal | `cmd-tools-screens.sh` in every sites and code folder: start, list, attach, log, follow, stop, clean. The same sessions the dashboard lists. |
@@ -141,7 +141,6 @@ element shows only when both are on.
 | `shells.enabled` | `true` | Master switch of the two below. |
 | `shells.project` | `true` | A shell in the project folder. |
 | `shells.container` | `true` | A shell, or one command, inside the project's container. |
-| `runs.default_mode` | `screen` | `screen` or `page`: how a run starts when nobody chose. |
 | `runs.log_dir` | `.screens` | The log folder: in the workspace, or an absolute path. |
 | `runs.retention_days` | `14` | Days an ended session is kept; `0` keeps it until you remove it. |
 | `runs.sockets_dir` | `auto` | Where screen keeps the sessions' sockets (below). |

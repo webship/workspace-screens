@@ -61,6 +61,12 @@ export function assistantContext(): string {
   ].join(' ');
 }
 
+/** The AI items the installer places: agents in ai-agents/, skills in ai-skills/, commands in ai-commands/, prompts in ai-prompts/. */
+export const AGENTS: string[] = ['screens-runner'];
+export const SKILLS: string[] = ['screens-sessions'];
+export const AI_COMMANDS: string[] = ['screens-list'];
+export const PROMPTS: string[] = ['screens-run-and-follow'];
+
 export function register(api: PluginApi): void {
   const lib = api.lib;
   const { esc } = lib;

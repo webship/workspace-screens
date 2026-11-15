@@ -16,7 +16,7 @@ you want it, from the terminal or from the dashboard.
 ```bash
 cd ~/workspace
 bash core/scripts/plugins.sh --require @webship.co/workspace-screens   # npm install into the dashboard
-bash core/scripts/plugins.sh --activate screens                         # plugins.screens in settings.yml
+bash core/scripts/plugins.sh --activate screens --with-needs                         # plugins.screens in settings.yml
 bash core/scripts/plugins.sh --install screens                          # the command, its functions, the screenrc, the settings
 bash core/scripts/plugins.sh --configure screens                        # core/config/plugin.screens.settings.yml
 ```
@@ -182,6 +182,27 @@ list does.
 container, which has the workspace at the same path, `ddev` and `docker`. A session
 `cmd-tools-screens.sh` starts runs where you typed it. Both are listed by both.
 
+## The items it carries
+
+The workspace is container-based (DDEV by default). Each item lands in the folder of its kind, when
+that folder is an active workspace folder, is listed there like any other item, and is installed
+into Claude Code from there:
+
+| What | Lands in | What it is for |
+| --- | --- | --- |
+| The agent `screens-runner` | `ai-agents/` | Runs a command of a folder as a session with `cmd-tools-screens.sh --run`, follows its log, reports the exit code, and leaves other people's sessions alone |
+| The skill `screens-sessions` | `ai-skills/` | Every option of `cmd-tools-screens.sh`, how a session is named and what it leaves, the entries of the dashboard, the switches of `plugin.screens.settings.yml` |
+| The command `/screens-list` | `ai-commands/` | `/screens-list <folder> [<session>]`: what is running, what ended and how, the last lines of a log. Read-only |
+| The prompt `screens-run-and-follow` | `ai-prompts/` | The launch command of a session that runs one command in a screen, follows it to the end and reports |
+
+The plugin keeps its one command, `cmd-tools-screens.sh`; no other was added. The item bodies are plain Markdown any AI command-line assistant can follow; Claude Code is the default shape (frontmatter, the launch command of the prompt).
+
+How the items are laid out and checked: [docs/plugin-items-pattern.md](docs/plugin-items-pattern.md).
+
+## What it needs
+
+It needs the AI folders its items are placed in (`needs`): `ai-agents`, `ai-skills`, `ai-commands` and `ai-prompts`. `--require` says so, `--activate` and `--install` stop until the workspace has them, and `--with-needs` adds what is missing first. A kind whose folder is not an active workspace folder is skipped, and the install says so.
+
 ## What the package holds
 
 | Path | What it is |
@@ -201,6 +222,11 @@ container, which has the workspace at the same path, `ddev` and `docker`. A sess
 | `config/screenrc` | The screen configuration of the sessions |
 | `css/screens.css` | The plugin's styles, appended after the dashboard's |
 | `features/screens.feature` | Scenarios the dashboard's own suite runs once the plugin is installed |
+| `ai/agents/screens-runner.md` | The agent `screens-runner` |
+| `ai/skills/screens-sessions/` | The skill `screens-sessions` |
+| `ai/commands/screens-list.md` | The command `/screens-list` |
+| `ai/prompts/screens-run-and-follow.md` | The prompt `screens-run-and-follow` |
+| `tests/items.test.ts` | The shape of every item, and that it names nothing the plugin does not have |
 
 The `workspacePlugin` block in `package.json` is the manifest the installer reads. `--uninstall`
 removes exactly what `--install` placed; the logs of your sessions in `.screens/` are yours and

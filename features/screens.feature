@@ -42,3 +42,19 @@ Feature: The Screens plugin: sessions, runs in a screen, shells
     Given I am on "/settings/plugins"
      Then I should see "Screens and terminals"
       And I should see "@webship.co/workspace-screens"
+
+  Scenario: The AI Agents folder lists the agent the plugin ships
+    Given I am on "/ai-agents"
+     Then I should see "screens-runner"
+
+  Scenario: The AI Skills folder lists the skill the plugin ships
+    Given I am on "/ai-skills"
+     Then I should see "screens-sessions"
+
+  Scenario: The AI Commands folder lists the command the plugin ships
+    Given I am on "/ai-commands"
+     Then I should see "screens-list"
+
+  Scenario: The AI Prompts folder lists the prompt the plugin ships
+    Given I am on "/ai-prompts"
+     Then I should see "screens-run-and-follow"

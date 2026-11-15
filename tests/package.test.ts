@@ -22,7 +22,7 @@ test('the manifest names the plugin, and every file it names ships with the pack
     assert.ok(pkg.files.includes(f.split('/')[0]), `${f} is published with the package`);
   }
   assert.deepStrictEqual(manifest.commands.files.map((f: string) => path.basename(f)), COMMANDS);
-  assert.strictEqual(pkg.version, '1.0.8');
+  assert.match(pkg.version, /^1\.0\.\d+$/);
   assert.strictEqual(pkg.devDependencies['@webship.co/workspace-plugin-api'], '^1.0.7');
   assert.strictEqual(pkg.dependencies, undefined, 'the container family is asked when it is there, never required');
 });

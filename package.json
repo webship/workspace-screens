@@ -1,6 +1,6 @@
 {
   "name": "@webship.co/workspace-screens",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Screens and terminals for Webship Workspace: run any cmd-*.sh in a named, detached screen session with a log, from the dashboard and from the terminal; find every run again after a restart; attach from your own terminal; open a shell in a project folder or inside its container, on whichever container runtime the project uses. Every part is a switch in its settings file. It carries its AI items, each placed in the workspace folder of its kind: an agent, a skill, a command and a prompt.",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",

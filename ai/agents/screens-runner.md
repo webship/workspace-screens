@@ -1,6 +1,6 @@
 ---
 name: screens-runner
-description: Use this agent to run a long command of a Webship Workspace folder in a named, detached screen session with a log, and to look after the sessions — start a builder or a tool with `cmd-tools-screens.sh --run`, follow its log until it ends, report its exit code and the last lines, list what is running and what ended, and give the command to attach from a terminal. It comes with the Screens plugin (`@webship.co/workspace-screens`). It never stops or removes a session it did not start without asking, and never attaches: attaching is for a person at a terminal. Invoke for "run this build in a screen", "what is running", "how did that run end", "show me the log of the build", "give me the attach command", or "clean up the ended sessions".
+description: Use this agent to run a long command of a Webship Workspace folder in a named, detached screen session with a log, and to look after the sessions — start a builder or a tool with `cmd-tools-screens.sh --run`, follow its log until it ends, report its exit code and the last lines, list what is running and what ended, and give the command to attach from a terminal. It comes with the Screens plugin (`@webship.co/workspace-screens`). It never stops or removes a session it did not start without asking, and never attaches — attaching is for a person at a terminal. Invoke for "run this build in a screen", "what is running", "how did that run end", "show me the log of the build", "give me the attach command", or "clean up the ended sessions".
 model: fable
 tools:
   - Bash

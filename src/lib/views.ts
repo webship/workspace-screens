@@ -72,7 +72,7 @@ export function sessionRowHtml(esc: Esc, r: SessionRow, hints: AttachHints | nul
     : `<button type="button" class="uk-button uk-button-default uk-button-small" hx-post="${act('remove')}" ${vals} ${OUT} hx-confirm="Remove the log and the notes of ${esc(r.session)}?"><span uk-icon="icon: trash; ratio: .7"></span> Remove</button>`}
     </div>
     ${r.state === 'running' && hints ? attachHtml(esc, hints) : ''}
-    ${r.log && r.state === 'running' ? `<pre class="terminal-pre sessions-tail" hx-get="${frag(`tail/${encodeURIComponent(r.session)}`)}" hx-trigger="load, every 4s" hx-swap="innerHTML">…</pre>` : ''}
+    ${r.log && r.state === 'running' ? `<pre class="terminal-pre sessions-tail" role="region" tabindex="0" aria-label="The end of the log of ${esc(r.session)}" hx-get="${frag(`tail/${encodeURIComponent(r.session)}`)}" hx-trigger="load, every 4s" hx-swap="innerHTML">…</pre>` : ''}
   </li>`;
 }
 

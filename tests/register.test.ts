@@ -197,6 +197,12 @@ test('the settings are read on every request: a switch turned off takes effect w
   assert.strictEqual(d.rail()[0].items.length, 2);
 });
 
+test('without screen where the dashboard runs the runner steps aside, so the dashboard gives its own answer with the line to copy', async () => {
+  const d = dashboard({}, { screen: false });
+  assert.strictEqual(await d.got.runners[0](runnerReq(d.root)), null, 'null leaves the run, and the "no screen" notice, to the dashboard');
+  assert.ok(!d.got.screenCalls.some((c: string[]) => c.includes('-dmS')), 'no session was asked for');
+});
+
 test('a run is never handed to the page: runs.default_mode page of an older settings file still starts a session', async () => {
   const d = dashboard({ runs: { default_mode: 'page' } });
   const out = await d.got.runners[0](runnerReq(d.root));

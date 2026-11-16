@@ -111,6 +111,11 @@ export function register(api: PluginApi): void {
     newer.addRunner(async (req) => {
       const s = settings();
       if (!s.switches.runInScreen) return null;
+      // Without screen where the dashboard runs this runner has nothing to start a session with. It
+      // steps aside (null) rather than answering "could not start": the dashboard then tries its own
+      // runners, and when none can start it either it says what is missing, the step that fixes it and
+      // the command line to copy into a terminal of one's own.
+      if (!(await sessions.health()).installed) return null;
       const session = validSession(req.session) ? String(req.session) : sessionName(req.workspace, req.project, req.verb);
       const started = await sessions.start({ session, command: req.cmdLine, dir: req.projectDir,
         note: { dir: req.ownerDir || req.projectDir, project: req.project, workspace: req.workspace, by: 'dashboard', kind: 'run', runtime: '' } });

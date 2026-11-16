@@ -24,6 +24,7 @@ Feature: The Screens plugin: sessions, runs in a screen, shells
      Then I should see "Run in a screen · dev"
       And I should not see "In the page"
 
+  @needs-project-dev
   Scenario: A project row offers the SHELL menu
     Given I am on "/dev"
      Then the element ".act-menu-shell" should be displayed
@@ -37,23 +38,26 @@ Feature: The Screens plugin: sessions, runs in a screen, shells
     When I post "/actions/p/screens/run" with '{"workspace":"dev","script":"../core/scripts/install.sh"}'
     Then the action response should contain "Unknown command"
 
-  Scenario: The plugin is listed on the Plugins page
+  # The Plugins page names each plugin; the package is on the plugin's own page (the row shows it on hover only).
+  Scenario: The plugin is listed on the Plugins page, and its own page names its package
     Given I am on "/settings/plugins"
      Then I should see "Screens and terminals"
-      And I should see "@webship.co/workspace-screens"
+     When I go to "/settings/plugin/screens"
+     Then I should see "@webship.co/workspace-screens"
 
+  # The AI folders are searched by name: with every plugin on, a folder lists more than one page of items.
   Scenario: The AI Agents folder lists the agent the plugin ships
-    Given I am on "/ai-agents"
+    Given I am on "/ai-agents?q=screens-runner"
      Then I should see "screens-runner"
 
   Scenario: The AI Skills folder lists the skill the plugin ships
-    Given I am on "/ai-skills"
+    Given I am on "/ai-skills?q=screens-sessions"
      Then I should see "screens-sessions"
 
   Scenario: The AI Commands folder lists the command the plugin ships
-    Given I am on "/ai-commands"
+    Given I am on "/ai-commands?q=screens-list"
      Then I should see "screens-list"
 
   Scenario: The AI Prompts folder lists the prompt the plugin ships
-    Given I am on "/ai-prompts"
+    Given I am on "/ai-prompts?q=screens-run-and-follow"
      Then I should see "screens-run-and-follow"

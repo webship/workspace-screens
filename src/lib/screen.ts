@@ -91,7 +91,7 @@ export function sessionEnv(base: NodeJS.ProcessEnv, sockets: string, interactive
 export interface AttachHints {
   /** From a terminal on this machine. */
   attach: string;
-  /** The same from a machine without screen: through the dashboard's container. Empty outside a container. */
+  /** The same from a machine without screen: through the dashboard's container. Empty when `attach` already goes through it. */
   viaContainer: string;
   /** The user's own terminal command with the attach command in it, or ''. */
   terminal: string;
@@ -100,12 +100,19 @@ export interface AttachHints {
 /**
  * How to attach from a terminal of your own. `screen -r` takes a detached session; one that a
  * terminal already has open is shared with `screen -x`. Ctrl-A D detaches again and leaves it running.
+ *
+ * Where the session is decides the command. A session on the machine (`machine`: the host runner's, or one started in
+ * a terminal there) is attached there as it is. A session the plugin started runs where the dashboard runs: in its
+ * container, which has a process space of its own (webship/workspace#564), so a terminal on the machine reaches it
+ * only through that container.
  */
-export function attachHints(session: string, opts: { attached?: boolean; sockets?: string; container?: string; terminalCommand?: string }): AttachHints {
+export function attachHints(session: string, opts: { attached?: boolean; sockets?: string; container?: string; terminalCommand?: string; machine?: boolean }): AttachHints {
   const prefix = opts.sockets ? `SCREENDIR=${shq(opts.sockets).replace(/^'([A-Za-z0-9_./~-]+)'$/, '$1')} ` : '';
-  const attach = `${prefix}screen ${opts.attached ? '-x' : '-r'} ${session}`;
-  const viaContainer = opts.container
-    ? `docker exec -it ${opts.sockets ? `-e SCREENDIR=${opts.sockets} ` : ''}${opts.container} screen ${opts.attached ? '-x' : '-r'} ${session}` : '';
+  const verb = opts.attached ? '-x' : '-r';
+  const through = opts.container
+    ? `docker exec -it ${opts.sockets ? `-e SCREENDIR=${opts.sockets} ` : ''}${opts.container} screen ${verb} ${session}` : '';
+  const attach = opts.machine ? `screen ${verb} ${session}` : (through || `${prefix}screen ${verb} ${session}`);
+  const viaContainer = '';
   const t = String(opts.terminalCommand || '');
   const terminal = t ? (t.includes('{attach}') ? t.replace(/\{attach\}/g, attach) : `${t} ${attach}`) : '';
   return { attach, viaContainer, terminal };

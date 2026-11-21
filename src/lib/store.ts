@@ -34,7 +34,11 @@ export interface RunNote {
   started: number;
 }
 
-export interface LiveRow { pid: string; session: string; started: string; state: string }
+export interface LiveRow {
+  pid: string; session: string; started: string; state: string;
+  /** On the machine, where only the host runner reaches it: the dashboard's container has a process space of its own. */
+  machine?: boolean;
+}
 
 export interface SessionRow {
   session: string;
@@ -49,6 +53,8 @@ export interface SessionRow {
   note: RunNote | null;
   log: string;
   pid: string;
+  /** A session on the machine (the host runner's, or one started in a terminal there), which screen here cannot reach. */
+  machine?: boolean;
 }
 
 const EXTENSIONS = ['log', 'run', 'exit', 'cwd'];
@@ -106,14 +112,14 @@ export function sessionRows(dir: string, live: LiveRow[]): SessionRow[] {
   for (const l of live) {
     if (!validSession(l.session)) continue;
     rows.set(l.session, { session: l.session, state: 'running', attached: /attached/i.test(l.state), exit: null, ended: 0,
-      note: readNote(dir, l.session), log: logOf(l.session), pid: l.pid });
+      note: readNote(dir, l.session), log: logOf(l.session), pid: l.pid, machine: !!l.machine });
   }
   for (const s of notedSessions(dir)) {
     if (rows.has(s)) continue;
     const exit = readExit(dir, s);
     let ended = exit.at;
     if (!ended) { try { ended = Math.floor(fs.statSync(fileOf(dir, s, 'log')).mtimeMs / 1000); } catch (_) { ended = 0; } }
-    rows.set(s, { session: s, state: 'ended', attached: false, exit: exit.code, ended, note: readNote(dir, s), log: logOf(s), pid: '' });
+    rows.set(s, { session: s, state: 'ended', attached: false, exit: exit.code, ended, note: readNote(dir, s), log: logOf(s), pid: '', machine: false });
   }
   const when = (r: SessionRow) => (r.state === 'ended' ? r.ended : 0) || (r.note ? r.note.started : 0);
   return [...rows.values()].sort((a, b) => (a.state === b.state ? when(b) - when(a) : a.state === 'running' ? -1 : 1));

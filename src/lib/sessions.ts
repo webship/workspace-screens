@@ -12,9 +12,21 @@ import { attachHints, ensureSocketsDir, ownContainer, parseScreenLs, runLine, se
 import type { AttachHints } from './screen';
 import type { Settings } from './settings';
 import { expiredSessions, fileOf, removeSession, sessionRows, storeDir, writeNote } from './store';
-import type { RunNote, SessionRow } from './store';
+import type { LiveRow, RunNote, SessionRow } from './store';
 
 export interface RunAnswer { ok: boolean; code: number; stdout: string; stderr: string }
+
+/**
+ * The sessions on the machine: the host runner's, and the ones started in a terminal there. The dashboard's container
+ * has a process space and a screen socket directory of its own (webship/workspace#564), so screen in it does not see
+ * them, and they are listed and stopped through the runner, as the base does it (#591).
+ */
+export interface MachineSessions {
+  /** The ones only the runner lists. */
+  list(): Promise<LiveRow[]>;
+  /** Stop one through the runner: its answer, or null when it did not answer. */
+  stop(session: string): Promise<{ ok: boolean; error?: string } | null>;
+}
 
 export interface Deps {
   /** The workspace root. */
@@ -25,6 +37,8 @@ export interface Deps {
   /** The screenrc the sessions run under. */
   screenrc: string;
   env?: NodeJS.ProcessEnv;
+  /** The sessions on the machine, through the host runner; none when the dashboard does not say which those are. */
+  machine?: MachineSessions;
 }
 
 export interface StartRequest {
@@ -80,7 +94,14 @@ export class Sessions {
     return this.deps.run('screen', args, cwd || this.deps.root, { timeoutMs: 30 * 1000, env: sessionEnv(this.env(), sockets, interactive) });
   }
 
-  async live() { return parseScreenLs((await this.screen(['-ls'])).stdout); }
+  /** What runs now: the sessions screen here lists, then those on the machine that only the host runner lists. */
+  async live(): Promise<LiveRow[]> {
+    const here = parseScreenLs((await this.screen(['-ls'])).stdout);
+    let machine: LiveRow[] = [];
+    if (this.deps.machine) { try { machine = await this.deps.machine.list(); } catch (_) { machine = []; } }
+    const seen = new Set(here.map((r) => r.session));
+    return here.concat(machine.filter((r) => validSession(r.session) && !seen.has(r.session)).map((r) => ({ ...r, machine: true })));
+  }
 
   async list(): Promise<SessionRow[]> { return sessionRows(this.dir(), await this.live()); }
 
@@ -111,6 +132,11 @@ export class Sessions {
     if (!validSession(session)) return { ok: false, why: 'not a session name' };
     const row = (await this.live()).find((r) => r.session === session);
     if (!row) return { ok: false, why: 'no such session is running' };
+    if (row.machine && this.deps.machine) {
+      const answer = await this.deps.machine.stop(session);
+      if (!answer) return { ok: false, why: 'the screen runner on your machine did not answer: bash core/workspace-app/scripts/screen-host.sh --status' };
+      return answer.ok ? { ok: true } : { ok: false, why: String(answer.error || 'the screen runner could not stop it').slice(-200) };
+    }
     const out = await this.screen(['-S', `${row.pid}.${session}`, '-X', 'quit']);
     return out.ok ? { ok: true } : { ok: false, why: String(out.stderr || out.stdout).trim().slice(-200) };
   }
@@ -130,7 +156,8 @@ export class Sessions {
     return names.filter((s) => removeSession(dir, s).length > 0);
   }
 
-  async hints(row: Pick<SessionRow, 'session' | 'attached'>): Promise<AttachHints> {
-    return attachHints(row.session, { attached: row.attached, sockets: await this.sockets(), container: ownContainer(this.env()), terminalCommand: this.deps.settings().terminalCommand });
+  async hints(row: Pick<SessionRow, 'session' | 'attached'> & { machine?: boolean }): Promise<AttachHints> {
+    return attachHints(row.session, { attached: row.attached, sockets: await this.sockets(), container: ownContainer(this.env()),
+      terminalCommand: this.deps.settings().terminalCommand, machine: !!row.machine });
   }
 }

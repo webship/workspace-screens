@@ -94,15 +94,22 @@ sessions" and `--clean --all` remove them all. Sessions run under the plugin's o
 Beside every running session:
 
 ```
-Attach from your terminal        screen -r dev--demo1--build
-Without screen on this machine   docker exec -it ddev-workspace-web screen -r dev--demo1--build
-Open in my terminal              gnome-terminal -- screen -r dev--demo1--build
+Attach from your terminal        docker exec -it ddev-workspace-web screen -r dev--demo1--build
+Open in my terminal              gnome-terminal -- docker exec -it ddev-workspace-web screen -r dev--demo1--build
 ```
 
 `screen -r` takes a detached session; one a terminal already has open is shared with `screen -x`,
-and the hint changes with the state. The second line is there when the dashboard runs in a
-container: it attaches through that container, so it works on a machine that has no `screen`. The
-third line appears when `terminal.command` is set. The dashboard runs in a container and cannot
+and the hint changes with the state. Where the session runs decides the command:
+
+- **A session the plugin started** runs where the dashboard runs. When that is its container, the
+  container has a process space of its own (the base, from webship/workspace#564), so a terminal on
+  your machine reaches the session only through it: `docker exec -it <container> screen -r <session>`.
+  That also works on a machine that has no `screen`. When the dashboard runs on the machine, it is
+  `screen -r <session>`.
+- **A session on the machine** (the base's host runner's, or one `cmd-tools-screens.sh` started in a
+  terminal there) is attached there as it is: `screen -r <session>`.
+
+The second line appears when `terminal.command` is set. The dashboard runs in a container and cannot
 open a window on your desktop, so these are commands to copy, not buttons that pretend to.
 
 ## The container runtimes
@@ -167,19 +174,21 @@ version each is, the sockets directory with its owner and mode and whether scree
 where the `screenrc` is. It reports and never installs: nothing in it runs `sudo`. What is missing
 is said with the exact command to type.
 
-**The sockets directory.** A session lives in a socket. The machine and the dashboard see the same
-sessions only when both use the same directory as the same user: the base mounts screen's own
-directory (`/run/screen`) into the dashboard's container for that. `runs.sockets_dir: auto` uses
-that directory while screen can use it, and falls back to `<log folder>/sockets`, a folder inside
-the workspace that both sides see under the same path and that needs no root, when screen refuses
-it (a machine where the `screen` package was never installed leaves `/run/screen` closed to
-users). The attach commands always carry the directory in use. In the fallback the base's own
-Screens grid, which reads screen's own directory, does not list these sessions; the Sessions
-list does.
+**The sockets directory.** A session lives in a socket. `runs.sockets_dir: auto` uses screen's own
+directory (`/run/screen`) where the sessions are started while screen can use it, and falls back to
+`<log folder>/sockets`, a folder inside the workspace that needs no root, when screen refuses it (a
+machine where the `screen` package was never installed leaves `/run/screen` closed to users). The
+attach commands always carry the directory in use. In the fallback the base's own Screens grid,
+which reads screen's own directory, does not list these sessions; the Sessions list does.
 
 **Where a session runs.** A session the dashboard starts runs where the dashboard runs: in its
 container, which has the workspace at the same path, `ddev` and `docker`. A session
-`cmd-tools-screens.sh` starts runs where you typed it. Both are listed by both.
+`cmd-tools-screens.sh` starts runs where you typed it. The dashboard's container has a process
+space and a screen socket directory of its own (the base, from webship/workspace#564), so screen in
+it cannot see the sessions on your machine. The Sessions list takes those from the base's host
+runner, which lists them, and **Stop** on one goes through the runner too; the plugin's own
+sessions are stopped where they run. A dashboard older than that still shares the machine's
+sessions with its container, and lists them through screen itself.
 
 ## The items it carries
 

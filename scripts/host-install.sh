@@ -59,8 +59,9 @@ else
   note 'dashboard container' "${CONTAINER} is not running: start the dashboard to check the container side"
 fi
 
-# 3. The sockets directory. A session lives in a socket; the machine and the dashboard see the same
-#    sessions only when both use the same directory, as the same user.
+# 3. The sockets directory. A session lives in a socket. The dashboard's container has a socket directory (and a
+#    process space) of its own since webship/workspace#564: the machine's sessions reach the dashboard through the
+#    base's host runner, and the plugin's own sessions in the container are attached through the container.
 DEFAULT_DIR="$(ls -d /run/screen /var/run/screen 2>/dev/null | head -n 1)"
 if [ -n "${DEFAULT_DIR}" ] ; then
   ok 'sockets directory' "${DEFAULT_DIR} — $(stat -c '%U:%G mode %a' "${DEFAULT_DIR}" 2>/dev/null)"
@@ -80,10 +81,10 @@ if [ -n "${PROBLEM}" ] ; then
     echo "        sudo chmod 1777 ${DEFAULT_DIR:-/run/screen}        # until the next boot; reinstalling the screen package makes it stay"
   fi
 elif [ -n "${HOST_SCREEN}${BOX_SCREEN}" ] ; then
-  ok 'sockets shared' 'screen can use its own directory: the machine and the dashboard list the same sessions'
+  ok 'sockets directory' 'screen can use its own directory'
 fi
-if [ -n "${BOX_SCREEN}" ] && [ "$("${BOX[@]}" sh -c 'ls -d /run/screen 2>/dev/null')" == '' ] ; then
-  note 'sockets mount' "/run/screen is not mounted into ${CONTAINER}: sessions of the dashboard are reached through the container (docker exec -it ${CONTAINER} screen -r <session>)"
+if [ -n "${BOX_SCREEN}" ] ; then
+  note 'dashboard sessions' "the plugin's sessions run in ${CONTAINER}, and are attached through it (docker exec -it ${CONTAINER} screen -r <session>); the machine's are listed through the base's screen runner"
 fi
 
 # 4. The screenrc the sessions run under: the plugin's own, never ~/.screenrc.

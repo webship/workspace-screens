@@ -19,6 +19,7 @@ import { freeName, sessionName, validSession, verbOfScript } from './lib/names';
 import { cliOnPath, familyRuntimes, guarded, noRuntimeMessage, runtimesOf } from './lib/runtime';
 import type { FamilyRuntime, ProjectRuntime } from './lib/runtime';
 import { Sessions } from './lib/sessions';
+import type { MachineSessions } from './lib/sessions';
 import { notEnabled, readSettings } from './lib/settings';
 import type { Settings } from './lib/settings';
 import { logPage } from './lib/store';
@@ -55,7 +56,7 @@ export function assistantContext(): string {
     'Screens and terminals (a plugin, @webship.co/workspace-screens): a long command is run in a named, detached screen session with a log,',
     'from the dashboard ("Run in a screen", a project\'s SHELL menu) or with `bash cmd-tools-screens.sh --run "<command>" --project <name>` in a workspace folder.',
     '`bash cmd-tools-screens.sh --list` lists the sessions (running and ended), `<session> --follow` follows a log, `<session> --stop` stops one, `--clean` removes what ended ones left.',
-    'A session outlives the dashboard and the browser; attach from a terminal with `screen -r <session>`.',
+    'A session outlives the dashboard and the browser; attach from a terminal with the command the Sessions page shows beside it: `screen -r <session>` for one on the machine, through the dashboard\'s container (`docker exec -it <container> screen -r <session>`) for one the plugin started there.',
     '`--shell --project <name>` opens a shell in a project folder as a session; with `--container` it opens inside the project\'s container (DDEV, or the runtime of a container plugin).',
     'Never stop or remove a session you did not start without asking.',
   ].join(' ');
@@ -72,7 +73,20 @@ export function register(api: PluginApi): void {
   const { esc } = lib;
   const newer = api as PluginApi & NewerApi;
   const settings = (): Settings => readSettings(api.settings.read());
-  const sessions = new Sessions({ root: lib.ROOT, settings, run: lib.run, screenrc: fs.existsSync(SCREENRC) ? SCREENRC : '' });
+  // The sessions on the machine, which only the host runner reaches: the dashboard's container has a process space of
+  // its own since webship/workspace#564. The base's list marks them `via: 'runner'`; an older base does not, and its
+  // container still shares the machine's sessions, so nothing is added there.
+  type BaseRow = { session: string; state?: string; started?: string; pid?: string; via?: string };
+  const machine: MachineSessions = {
+    list: async () => ((await lib.listScreens()) as BaseRow[])
+      .filter((r) => r.via === 'runner' && validSession(r.session))
+      .map((r) => ({ pid: String(r.pid || ''), session: r.session, started: String(r.started || ''), state: String(r.state || '') })),
+    stop: async (session) => {
+      const answer = await lib.hostRunnerRequest('stop', { session });
+      return answer && typeof answer === 'object' ? { ok: !!answer.ok, error: answer.error ? String(answer.error) : undefined } : null;
+    },
+  };
+  const sessions = new Sessions({ root: lib.ROOT, settings, run: lib.run, screenrc: fs.existsSync(SCREENRC) ? SCREENRC : '', machine });
   const hasPanel = typeof newer.addScreensPanel === 'function';
   const pageUrl = hasPanel ? '/screens' : '/screens/runs';
 
@@ -92,7 +106,7 @@ export function register(api: PluginApi): void {
 
   const changed = (ctx: ActionContext) => { try { ctx.res.setHeader('HX-Trigger', 'screens-changed'); } catch (_) { /* headers sent */ } };
 
-  const hintsOf = async (row: Pick<SessionRow, 'session' | 'attached'>) => (settings().switches.attachHints ? sessions.hints(row) : null);
+  const hintsOf = async (row: Pick<SessionRow, 'session' | 'attached'> & { machine?: boolean }) => (settings().switches.attachHints ? sessions.hints(row) : null);
 
   /** Start a session and answer the request: the session, where to watch it, how to attach. */
   async function startAndAnswer(ctx: ActionContext, req: Parameters<Sessions['start']>[0], label: string, project: string) {

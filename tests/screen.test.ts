@@ -60,12 +60,21 @@ test('a session\'s environment: a terminal type screen passes colours for, the s
 test('the attach command: -r for a detached session, -x for one a terminal has open, the sockets directory when it is not screen\'s own', () => {
   assert.deepStrictEqual(attachHints('dev--demo--build', {}), { attach: 'screen -r dev--demo--build', viaContainer: '', terminal: '' });
   assert.strictEqual(attachHints('s', { attached: true }).attach, 'screen -x s');
-  const h = attachHints('s', { sockets: '/w/.screens/sockets', container: 'ddev-workspace-web', terminalCommand: 'gnome-terminal -- {attach}' });
-  assert.strictEqual(h.attach, 'SCREENDIR=/w/.screens/sockets screen -r s');
-  assert.strictEqual(h.viaContainer, 'docker exec -it -e SCREENDIR=/w/.screens/sockets ddev-workspace-web screen -r s');
-  assert.strictEqual(h.terminal, 'gnome-terminal -- SCREENDIR=/w/.screens/sockets screen -r s');
   assert.strictEqual(attachHints('s', { sockets: '/a b/sock' }).attach, `SCREENDIR='/a b/sock' screen -r s`);
   assert.strictEqual(attachHints('s', { terminalCommand: 'konsole -e' }).terminal, 'konsole -e screen -r s');
+});
+
+test('a session the plugin started in the dashboard\'s container is attached through it; one on the machine, there', () => {
+  // The container has a process space of its own (webship/workspace#564): a terminal on the machine reaches a session
+  // in it only through the container, and `screen -r` on the machine would answer "There is no screen to be resumed".
+  const h = attachHints('s', { sockets: '/w/.screens/sockets', container: 'ddev-workspace-web', terminalCommand: 'gnome-terminal -- {attach}' });
+  assert.strictEqual(h.attach, 'docker exec -it -e SCREENDIR=/w/.screens/sockets ddev-workspace-web screen -r s');
+  assert.strictEqual(h.viaContainer, '', 'not said twice');
+  assert.strictEqual(h.terminal, 'gnome-terminal -- docker exec -it -e SCREENDIR=/w/.screens/sockets ddev-workspace-web screen -r s');
+  assert.strictEqual(attachHints('s', { container: 'ddev-workspace-web', attached: true }).attach, 'docker exec -it ddev-workspace-web screen -x s');
+  // A session on the machine (the host runner's, or one started in a terminal there) is attached there as it is.
+  const m = attachHints('s', { sockets: '/w/.screens/sockets', container: 'ddev-workspace-web', machine: true });
+  assert.deepStrictEqual(m, { attach: 'screen -r s', viaContainer: '', terminal: '' });
 });
 
 test('the dashboard knows the container it runs in, and a plain machine has none', () => {
